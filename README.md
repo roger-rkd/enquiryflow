@@ -7,7 +7,7 @@
 <br />
 
 [![Workflow](https://img.shields.io/badge/⬇️_Download_Workflow-Import_to_n8n-EA4B71?style=for-the-badge&logoColor=white)](./workflow/enquiryflow-workflow.json)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow_for_Updates-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/rohitkumardubey)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Read_the_Post-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/posts/rohitkrdubey_n8n-aiautomation-claudeai-share-7459606038409867265-qefD)
 [![Built with n8n](https://img.shields.io/badge/Built_with-n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)](https://n8n.io)
 [![Claude API](https://img.shields.io/badge/Powered_by-Claude_API-D97706?style=for-the-badge&logoColor=white)](https://anthropic.com)
 
