@@ -1,0 +1,606 @@
+{
+  "name": "EnquiryFlow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "labelIds": [
+            "INBOX"
+          ]
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        64
+      ],
+      "id": "17568370-d81a-4dab-964f-dd7d6a78d728",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MGG5c5Z1cvyTLBCI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "<Your API Key>"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json.requestBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1344,
+        160
+      ],
+      "id": "0d2d6c7d-f5cf-4962-93e9-23095442e460",
+      "name": "Claude - Text Only"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.content[0].text;\nconst cleaned = raw.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\nconst parsed = JSON.parse(cleaned);\nreturn [{ json: parsed }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        64
+      ],
+      "id": "de2154cd-6e53-4100-a7e9-2ad1412ad21b",
+      "name": "Parse Claude Response"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1_bFrlrVgm2n-2EAJgvapQL-5gOnW0QghQNV5enZdIiE",
+          "mode": "list",
+          "cachedResultName": "enquiry-mails",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_bFrlrVgm2n-2EAJgvapQL-5gOnW0QghQNV5enZdIiE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_bFrlrVgm2n-2EAJgvapQL-5gOnW0QghQNV5enZdIiE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "summary": "={{ $json.summary }}",
+            "urgency": "={{ $json.urgency }}",
+            "deadline": "={{ $json.deadline ? $json.deadline : 'Not specified' }}",
+            "budget_indicated": "={{ $json.budget_indicated ? 'Yes' : 'Not indicated' }}",
+            "returning_customer": "={{ $json.returning_customer }}",
+            "line_items": "={{ $json.line_items.reduce((total, item) => total + item.quantity, 0) }}",
+            "open_questions": "={{ $json.open_questions.join(', ') }}",
+            "recommended_next_action": "={{ $json.recommended_next_action }}",
+            "confidence_score": "={{ $json.confidence_score }}",
+            "name": "={{ $json.customer.name }}",
+            "company": "={{ $json.customer.company ? $json.customer.company : 'Individual / not provided' }}",
+            "email": "={{ $json.customer.email ? $json.customer.email : 'Not provided' }}",
+            "phone": "={{ $json.customer.phone ? $json.customer.phone.replace(/\\s/g, '') : null }}",
+            "location": "={{ $json.customer.location }}"
+          },
+          "matchingColumns": [
+            "name"
+          ],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "deadline",
+              "displayName": "deadline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "budget_indicated",
+              "displayName": "budget_indicated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "returning_customer",
+              "displayName": "returning_customer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "line_items",
+              "displayName": "line_items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "open_questions",
+              "displayName": "open_questions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "recommended_next_action",
+              "displayName": "recommended_next_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "confidence_score",
+              "displayName": "confidence_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1792,
+        64
+      ],
+      "id": "fca2dae0-d2d1-44b5-97a7-5006236998a0",
+      "name": "Log to Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pmuc0jb9aZPQuEV4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "rohitkd207@gmail.com",
+        "subject": "={{ 'New enquiry — ' + $json.name + ' (' + $json.urgency + ' urgency)' }}",
+        "message": "=<h2>New Flight Case Enquiry</h2>\n\n<table style=\"border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:14px;\">\n  <tr style=\"background:#f5f5f5;\">\n    <td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">Customer</td>\n    <td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.name }}</td>\n  </tr>\n  <tr>\n    <td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">Email</td>\n    <td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.email }}</td>\n  </tr>\n  <tr style=\"background:#f5f5f5;\">\n    <td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">Urgency</td>\n    <td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.urgency }}</td>\n  </tr>\n  <tr>\n    <td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">Deadline</td>\n    <td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.deadline }}</td>\n  </tr>\n  <tr style=\"background:#f5f5f5;\">\n    <td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">Items</td>\n    <td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.line_items }}</td>\n  </tr>\n  <tr>\n    <td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">Confidence</td>\n    <td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.confidence_score }}</td>\n  </tr>\n</table>\n\n<h3>AI Summary</h3>\n<p>{{ $json.summary }}</p>\n\n<h3>Recommended Next Action</h3>\n<p><strong>{{ $json.recommended_next_action }}</strong></p>\n\n<p style=\"color:#888;font-size:12px;\">Generated automatically by NSP Cases AI Enquiry Processor</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2016,
+        64
+      ],
+      "id": "53fb008a-422c-492c-a01a-42542123def7",
+      "name": "Email Sales Team",
+      "webhookId": "99a95a02-b277-4ed1-b7fc-fb91ae108f11",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "MGG5c5Z1cvyTLBCI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "49474334-42c9-497b-9b22-c0fd38a199bc",
+              "leftValue": "={{ $json.headers?.['content-type'] || $json.payload?.mimeType }}",
+              "rightValue": "=multipart/mixed",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        64
+      ],
+      "id": "4ee97934-b9cc-4c8a-b7a3-4c4b5b7e5629",
+      "name": "Has Attachment?"
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://gmail.googleapis.com/gmail/v1/users/me/messages/' + $('Gmail Trigger').item.json.id + '?format=full' }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        -32
+      ],
+      "id": "f50dab1c-f0da-44f8-9eab-437e0a26e0ae",
+      "name": "Get Full Gmail Message",
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "4lxlwX7FQqyGkVEx",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://gmail.googleapis.com/gmail/v1/users/me/messages/' + $('Gmail Trigger').item.json.id + '/attachments/' + $json.payload.parts[1].body.attachmentId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        672,
+        -32
+      ],
+      "id": "be682d4d-af48-4a22-b283-6bbbb36ddc1d",
+      "name": " Fetch Attachment Data",
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "4lxlwX7FQqyGkVEx",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawData = $input.first().json.data;\nconst fixedBase64 = rawData.replace(/-/g, '+').replace(/_/g, '/');\n\nreturn [{\n  json: {\n    imageBase64: fixedBase64,\n    imageMimeType: 'image/svg+xml',\n    imageFilename: 'flight_case_technical_drawing.svg',\n    emailText: $('Gmail Trigger').item.json.text,\n    emailSubject: $('Gmail Trigger').item.json.subject,\n    emailFrom: $('Gmail Trigger').item.json.from\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        -32
+      ],
+      "id": "fb51f161-360c-47ca-be5c-c845c5679384",
+      "name": "Extract Base64 Image"
+    },
+    {
+      "parameters": {
+        "jsCode": "const gmailData = $('Gmail Trigger').item.json;\nconst previousCode = $('Extract Base64 Image').item.json;\n\nconst svgBase64 = previousCode.imageBase64;\nconst svgText = Buffer.from(svgBase64, 'base64').toString('utf-8');\n\nconst emailFrom = gmailData.from?.value?.[0]?.address || 'unknown@email.com';\nconst emailSubject = gmailData.subject || 'No subject';\nconst emailText = gmailData.text || gmailData.snippet || '';\n\nconst body = {\n  model: \"claude-opus-4-5-20251101\",\n  max_tokens: 1000,\n  system: \"You are an AI assistant for NSP Cases, a UK flight case manufacturer. Parse incoming customer enquiry emails and extract structured information. A technical drawing is attached as SVG code — extract any dimensions, annotations, or requirements visible in it and include them in your analysis. Respond with ONLY a valid JSON object, no markdown, no explanation. Schema: {\\\"customer\\\":{\\\"name\\\":string,\\\"company\\\":string,\\\"email\\\":string,\\\"phone\\\":string|null,\\\"location\\\":string|null},\\\"summary\\\":string,\\\"urgency\\\":\\\"low\\\"|\\\"medium\\\"|\\\"high\\\",\\\"deadline\\\":string|null,\\\"budget_indicated\\\":boolean,\\\"returning_customer\\\":boolean,\\\"has_attachment\\\":boolean,\\\"attachment_notes\\\":string,\\\"line_items\\\":[{\\\"item_number\\\":number,\\\"description\\\":string,\\\"quantity\\\":number,\\\"dimensions_mm\\\":{\\\"width\\\":number|null,\\\"height\\\":number|null,\\\"depth\\\":number|null},\\\"special_requirements\\\":string[]}],\\\"open_questions\\\":string[],\\\"recommended_next_action\\\":string,\\\"confidence_score\\\":number}\",\n  messages: [\n    {\n      role: \"user\",\n      content: `Parse this enquiry email and the attached technical drawing (provided as SVG code below):\\n\\nFrom: ${emailFrom}\\nSubject: ${emailSubject}\\n\\n${emailText}\\n\\n---\\nATTACHED TECHNICAL DRAWING (SVG):\\n${svgText}`\n    }\n  ]\n};\n\nreturn [{ json: { requestBody: JSON.stringify(body) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -32
+      ],
+      "id": "7a719556-d5b1-407a-bffa-7cb88a8cc4a5",
+      "name": "Build Claude Vision Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "<Your API Key>"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json.requestBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1344,
+        -32
+      ],
+      "id": "55137c11-50ea-407f-832b-cb47717e7115",
+      "name": "Claude - Vision + Text"
+    },
+    {
+      "parameters": {
+        "jsCode": "const gmailData = $input.first().json;\n\nconst emailFrom = gmailData.headers?.from || gmailData.From || 'unknown';\nconst emailSubject = gmailData.subject || gmailData.Subject || 'No subject';\nconst emailText = gmailData.text || gmailData.snippet || '';\n\nconst body = {\n  model: \"claude-opus-4-5-20251101\",\n  max_tokens: 1000,\n  system: \"You are an AI assistant for NSP Cases, a UK flight case manufacturer. Parse incoming customer enquiry emails and extract structured information. Respond with ONLY a valid JSON object, no markdown, no explanation. Schema: {\\\"customer\\\":{\\\"name\\\":string,\\\"company\\\":string,\\\"email\\\":string,\\\"phone\\\":string|null,\\\"location\\\":string|null},\\\"summary\\\":string,\\\"urgency\\\":\\\"low\\\"|\\\"medium\\\"|\\\"high\\\",\\\"deadline\\\":string|null,\\\"budget_indicated\\\":boolean,\\\"returning_customer\\\":boolean,\\\"line_items\\\":[{\\\"item_number\\\":number,\\\"description\\\":string,\\\"quantity\\\":number,\\\"dimensions_mm\\\":{\\\"width\\\":number|null,\\\"height\\\":number|null,\\\"depth\\\":number|null},\\\"special_requirements\\\":string[]}],\\\"open_questions\\\":string[],\\\"recommended_next_action\\\":string,\\\"confidence_score\\\":number}\",\n  messages: [\n    {\n      role: \"user\",\n      content: `Parse this enquiry email:\\n\\nFrom: ${emailFrom}\\nSubject: ${emailSubject}\\n\\n${emailText}`\n    }\n  ]\n};\n\nreturn [{ json: { requestBody: JSON.stringify(body) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        160
+      ],
+      "id": "39afb06f-a7d1-47fb-b866-ebe2b3d27cba",
+      "name": "Build Claude Text Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Has Attachment?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude - Text Only": {
+      "main": [
+        [
+          {
+            "node": "Parse Claude Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Claude Response": {
+      "main": [
+        [
+          {
+            "node": "Log to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Email Sales Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Attachment?": {
+      "main": [
+        [
+          {
+            "node": "Get Full Gmail Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Claude Text Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Full Gmail Message": {
+      "main": [
+        [
+          {
+            "node": " Fetch Attachment Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    " Fetch Attachment Data": {
+      "main": [
+        [
+          {
+            "node": "Extract Base64 Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Base64 Image": {
+      "main": [
+        [
+          {
+            "node": "Build Claude Vision Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Claude Vision Request": {
+      "main": [
+        [
+          {
+            "node": "Claude - Vision + Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude - Vision + Text": {
+      "main": [
+        [
+          {
+            "node": "Parse Claude Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Claude Text Request": {
+      "main": [
+        [
+          {
+            "node": "Claude - Text Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "cd0649df-d315-461a-bc6b-cf450d56cfbc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5bff91926b511814a1487d2c42b73b8b1afe2548e043fbe879a6665a14f8d11c"
+  },
+  "id": "LY6VFKzOc46r0uhp",
+  "tags": []
+}
